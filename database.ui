@@ -57,7 +57,6 @@
     <addaction name="separator"/>
     <addaction name="open"/>
     <addaction name="create"/>
-    <addaction name="exit"/>
    </widget>
    <addaction name="menu"/>
   </widget>
@@ -74,11 +73,6 @@
   <action name="create">
    <property name="text">
     <string>Создать</string>
-   </property>
-  </action>
-  <action name="exit">
-   <property name="text">
-    <string>Выход</string>
    </property>
   </action>
  </widget>

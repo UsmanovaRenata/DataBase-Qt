@@ -1,6 +1,6 @@
 #ifndef DATABASE_H
 #define DATABASE_H
-
+#include "jsonformat.h"
 #include <QMainWindow>
 #include<QSqlDatabase>
 #include<QSqlQuery>
@@ -13,6 +13,7 @@
 #include <QFileInfo>
 #include <QMessageBox>
 #include <QJsonObject>
+#include <QSqlRecord>
 QT_BEGIN_NAMESPACE
 namespace Ui { class Database; }
 QT_END_NAMESPACE
@@ -24,18 +25,16 @@ class Database : public QMainWindow
 public:
     Database(QWidget *parent = nullptr);
     ~Database();
-    void connect_db();
+    QSqlTableModel *model;
 
 private slots:
     void on_open_triggered();
     void on_create_triggered();
-    void on_exit_triggered();
-
 private:
     Ui::Database *ui;
     QSqlDatabase db;
     QSqlQuery *query;
-    QSqlTableModel *model;
+    void read_json(QByteArray &val);
     void open_db();
     void read_db();
     void create_table();

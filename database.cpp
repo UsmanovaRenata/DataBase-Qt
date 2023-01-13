@@ -11,8 +11,13 @@ Database::Database(QWidget *parent)
 Database::~Database()
 {
     delete ui;
+    delete model;
+    delete query;
 }
 
+//создание новой базы
+
+//выбор имени
 QString Database::set_db_name()
 {
     bool ok;
@@ -20,7 +25,7 @@ QString Database::set_db_name()
                                              tr("Название:"), QLineEdit::Normal,
                                              tr("Untitled"), &ok);
     if(!ok) return "";
-    QString path = "./" + db_name + ".json";
+    QString path = "./" + db_name + ".db";
     if(QFileInfo::exists(path) && QFileInfo(path).isFile()){
         QMessageBox::warning(this,"Ошибка","База данных с таким именем существует");
         db_name = set_db_name();
@@ -30,15 +35,14 @@ QString Database::set_db_name()
     }
     return db_name;
 }
-
-
+//создание соединения бд
 void Database::open_db()
 
 {
     QString db_name = set_db_name();
     if(db_name != ""){
     db = QSqlDatabase::addDatabase("QSQLITE");//соединение с бд
-    db.setDatabaseName("./" + db_name + ".json");
+    db.setDatabaseName("./" + db_name + ".db");
     }
     if(db.open()){
         qDebug("Successfully opened");
@@ -48,23 +52,7 @@ void Database::open_db()
         error_message();
     }
 }
-
-void Database::read_db()
-{
-    QString val;
-    QFile db = QFileDialog::getOpenFileName(this,QString("Выбор файла"),QString(),QString("JSON (*.json);;"));
-    QFileInfo fileInfo(db.fileName());
-    QString name(fileInfo.fileName());
-    if (!db.open(QIODevice::ReadOnly)){
-        qDebug("the file cannot be opened");
-        error_message();
-        return;
-    }
-    ui->db_name->setText(name.first(name.lastIndexOf(".")));
-    val = db.readAll();
-    db.close();
-}
-
+//создание новой таблицы
 void Database::create_table()
 {
 
@@ -82,7 +70,50 @@ void Database::create_table()
     model->setTable("student");
     ui->table->setModel(model);
     ui->table->show();
+}
 
+
+void Database::on_create_triggered()
+{
+    open_db();
+}
+
+
+//открыть существующую
+
+void Database::read_db()
+{
+    //выбор файла
+    delete model;
+    QFile db_file = QFileDialog::getOpenFileName(this,QString("Выбор файла"),QString(),QString("(*.json *.db);;"));
+    QFileInfo fileInfo(db_file.fileName());
+    QString name(fileInfo.fileName());
+    if (!db_file.open(QIODevice::ReadOnly)){
+        qDebug("the file cannot be opened");
+        error_message();
+        return;
+    }
+    ui->db_name->setText(name.first(name.lastIndexOf(".")));
+    //проверка расширения файла
+    if(name.right(5) == ".json"){
+        qDebug("open json file");
+        QByteArray val;
+        val = db_file.readAll();
+        read_json(val);
+        db_file.close();
+    }else{
+        //если файл расширения .db
+        db = QSqlDatabase::addDatabase("QSQLITE");//соединение с бд
+        db.setDatabaseName(db_file.fileName());
+        model = new QSqlTableModel;
+        model->setTable("student");
+        ui->table->setModel(model);
+        ui->table->show();
+    }
+}
+
+void Database::read_json(QByteArray &val)
+{
 
 }
 
@@ -96,18 +127,3 @@ void Database::on_open_triggered()
 {
     read_db();
 }
-
-
-void Database::on_create_triggered()
-{
-    open_db();
-}
-
-void Database::on_exit_triggered()
-{
-    db.close();
-    delete query;
-    delete model;
-    close();
-}
-
